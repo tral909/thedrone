@@ -1,4 +1,4 @@
-package com.musalasoft.indorm1992.thedrone;
+package com.musalasoft.indorm1992.thedrone.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
