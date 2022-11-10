@@ -1,10 +1,11 @@
 package com.musalasoft.indorm1992.thedrone.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
 
-@Data
-@AllArgsConstructor
+import java.util.List;
+
+@Value
 public class RestError {
-    private String msg;
+    String reason;
+    List<String> errors;
 }

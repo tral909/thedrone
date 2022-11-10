@@ -16,7 +16,6 @@ import javax.persistence.Table;
 @Table(name = "MS_MEDICATION")
 public class Medication extends AbstractEntity {
 
-    //@NotBlank
     @Column(name = "NAME", nullable = false)
     private String name;
 
@@ -25,7 +24,7 @@ public class Medication extends AbstractEntity {
     private byte[] image;
 
     @Column(name = "WEIGHT_GRAMS", nullable = false)
-    private int weightGrams;
+    private Integer weightGrams;
 
     @Column(name = "CODE", nullable = false)
     private String code;

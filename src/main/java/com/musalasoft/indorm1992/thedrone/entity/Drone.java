@@ -22,7 +22,7 @@ import java.util.List;
 @Table(name = "MS_DRONE")
 public class Drone extends AbstractEntity {
 
-    @Column(name = "SERIAL_NUMBER", nullable = false)
+    @Column(name = "SERIAL_NUMBER", unique = true, nullable = false)
     private String serialNumber;
 
     @Column(name = "MODEL", nullable = false)
@@ -30,14 +30,14 @@ public class Drone extends AbstractEntity {
     private DroneModel model;
 
     @Column(name = "WEIGHT_LIMIT_GRAMS", nullable = false)
-    private int weightLimitGrams;
+    private Integer weightLimitGrams;
 
     @Column(name = "BATTERY_CAPACITY", nullable = false)
-    private int batteryCapacity;
+    private Integer batteryCapacity;
 
     @Column(name = "STATE", nullable = false)
     @Enumerated(EnumType.STRING)
-    private DroneState state;
+    private DroneState state = DroneState.IDLE;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "DRONE_ID")
