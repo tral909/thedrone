@@ -1,4 +1,4 @@
-package com.musalasoft.indorm1992.thedrone.util;
+package com.musalasoft.indorm1992.thedrone.exception;
 
 import com.musalasoft.indorm1992.thedrone.dto.RestError;
 import org.springframework.http.HttpStatus;
@@ -16,7 +16,7 @@ public class RestExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public RestError MethodArgumentNotValidExceptionHandler(MethodArgumentNotValidException ex) {
+    public RestError handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
 
         List<String> errors = new ArrayList<>();
         for (FieldError err : ex.getFieldErrors()) {
@@ -24,6 +24,12 @@ public class RestExceptionHandler {
         }
 
         return new RestError(HttpStatus.BAD_REQUEST.getReasonPhrase(), errors);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(DroneNotFoundException.class)
+    public RestError handleDroneNotFoundException(DroneNotFoundException ex) {
+        return new RestError(HttpStatus.BAD_REQUEST.getReasonPhrase(), List.of(ex.getMessage()));
     }
 
 }

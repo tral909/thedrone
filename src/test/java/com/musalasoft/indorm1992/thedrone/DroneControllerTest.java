@@ -1,7 +1,8 @@
 package com.musalasoft.indorm1992.thedrone;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.musalasoft.indorm1992.thedrone.dto.DroneDto;
+import com.musalasoft.indorm1992.thedrone.dto.DroneCreateDto;
+import com.musalasoft.indorm1992.thedrone.dto.DroneOutDto;
 import com.musalasoft.indorm1992.thedrone.entity.Drone;
 import com.musalasoft.indorm1992.thedrone.entity.DroneModel;
 import com.musalasoft.indorm1992.thedrone.entity.DroneState;
@@ -15,11 +16,14 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class DroneControllerTest extends AbstractControllerTest {
@@ -32,9 +36,9 @@ class DroneControllerTest extends AbstractControllerTest {
 
 	@Test
 	void registerDrone() throws Exception {
-		assertEquals(0, droneRepository.findAll().size());
+		assertEquals(10, droneRepository.findAll().size());
 
-		DroneDto dto = DroneDto.builder()
+		DroneCreateDto dto = DroneCreateDto.builder()
 				.serialNumber("123ABC")
 				.model(DroneModel.LIGHT_WEIGHT)
 				.weightLimitGrams(150)
@@ -48,27 +52,51 @@ class DroneControllerTest extends AbstractControllerTest {
 				.andReturn();
 
 		String response = result.getResponse().getContentAsString();
-		DroneDto outDto = mapper.readValue(response, DroneDto.class);
+		DroneOutDto outDto = mapper.readValue(response, DroneOutDto.class);
 
 		Long outId = outDto.getId();
 		assertNotNull(outId);
 		assertEquals(dto.getSerialNumber(), outDto.getSerialNumber());
-		assertEquals(dto.getModel(), outDto.getModel());
+		assertSame(dto.getModel(), outDto.getModel());
 		assertEquals(dto.getWeightLimitGrams(), outDto.getWeightLimitGrams());
 		assertEquals(dto.getBatteryCapacity(), outDto.getBatteryCapacity());
+		assertSame(DroneState.IDLE, outDto.getState());
 
-		assertEquals(1, droneRepository.findAll().size());
+		assertEquals(11, droneRepository.findAll().size());
 		Drone savedDrone = droneRepository.findById(outId)
-				.orElseThrow(() -> new AssertionFailedError("drone by responded id " + outId + " not found"));
+				.orElseThrow(() -> new AssertionFailedError("drone by responded id " + outId + " is not found"));
 
-		assertEquals(dto.getSerialNumber(), savedDrone.getSerialNumber());
-		assertEquals(dto.getModel(), savedDrone.getModel());
-		assertEquals(dto.getWeightLimitGrams(), savedDrone.getWeightLimitGrams());
-		assertEquals(dto.getBatteryCapacity(), savedDrone.getBatteryCapacity());
-		assertSame(DroneState.IDLE, savedDrone.getState());
+		assertEquals(outId, savedDrone.getId());
+		assertEquals(outDto.getSerialNumber(), savedDrone.getSerialNumber());
+		assertSame(outDto.getModel(), savedDrone.getModel());
+		assertEquals(outDto.getWeightLimitGrams(), savedDrone.getWeightLimitGrams());
+		assertEquals(outDto.getBatteryCapacity(), savedDrone.getBatteryCapacity());
+		assertSame(outDto.getState(), savedDrone.getState());
 		List<Medication> meds = savedDrone.getMedications();
 		assertNotNull(meds);
 		assertEquals(0, meds.size());
+	}
+
+	@Test
+	void getDroneBatteryLevelById() throws Exception {
+		// see data.sql (its first inserted drone)
+		mockMvc.perform(get("/api/v1/drone/{id}/battery-level", 1))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.percentages", is(60)));
+	}
+
+	@Test
+	void getAllFleetOfDrones() throws Exception {
+		// data.sql inserts 10 drones, we check only first in detail
+		mockMvc.perform(get("/api/v1/drone"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()", is(10)))
+				.andExpect(jsonPath("$.[0].id", is(1)))
+				.andExpect(jsonPath("$.[0].serialNumber", is("QWE1")))
+				.andExpect(jsonPath("$.[0].model", is("LIGHT_WEIGHT")))
+				.andExpect(jsonPath("$.[0].weightLimitGrams", is(120)))
+				.andExpect(jsonPath("$.[0].batteryCapacity", is(60)))
+				.andExpect(jsonPath("$.[0].state", is("IDLE")));
 	}
 
 }

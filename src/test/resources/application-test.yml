@@ -1,0 +1,4 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:ms_thedrone_test_db;DB_CLOSE_ON_EXIT=FALSE
+

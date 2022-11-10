@@ -12,7 +12,7 @@ import javax.validation.constraints.Size;
 
 @Value
 @Builder
-public class DroneDto {
+public class DroneCreateDto {
 
     Long id;
 
