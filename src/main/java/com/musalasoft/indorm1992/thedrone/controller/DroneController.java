@@ -62,4 +62,9 @@ public class DroneController {
     public List<DroneOutDto> getAllFleetOfDrones() {
         return droneService.getAllFleetOfDrones();
     }
+
+    // todo
+    //  1) api for checking loaded medication items for a given drone
+    //  2) dockerize app
+    //  3) update README.md with info about build/launch/testing application
 }

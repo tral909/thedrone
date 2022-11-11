@@ -11,6 +11,7 @@ import com.musalasoft.indorm1992.thedrone.entity.Medication;
 import com.musalasoft.indorm1992.thedrone.exception.DroneLoadingException;
 import com.musalasoft.indorm1992.thedrone.exception.DroneNotFoundException;
 import com.musalasoft.indorm1992.thedrone.exception.DroneOverloadedException;
+import com.musalasoft.indorm1992.thedrone.exception.DroneUniqueSerialNumberException;
 import com.musalasoft.indorm1992.thedrone.mapper.DroneMapper;
 import com.musalasoft.indorm1992.thedrone.mapper.MedicationMapper;
 import com.musalasoft.indorm1992.thedrone.repository.DroneRepository;
@@ -35,6 +36,11 @@ public class DroneService {
 
     @Transactional
     public DroneOutDto registerDrone(DroneCreateDto dto) {
+        droneRepository.findBySerialNumber(dto.getSerialNumber())
+                .ifPresent((d) -> {
+                    throw new DroneUniqueSerialNumberException(
+                            "Drone with serial number " + dto.getSerialNumber() + " already exists");
+                });
         Drone drone = droneMapper.map(dto);
         Drone savedDrone = droneRepository.save(drone);
         return droneMapper.map(savedDrone);

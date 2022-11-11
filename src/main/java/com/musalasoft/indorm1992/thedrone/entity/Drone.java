@@ -23,7 +23,6 @@ import java.util.List;
 @Table(name = "MS_DRONE")
 public class Drone extends AbstractEntity {
 
-    // todo validate uniqueness while registering
     @Column(name = "SERIAL_NUMBER", unique = true, nullable = false)
     private String serialNumber;
 
