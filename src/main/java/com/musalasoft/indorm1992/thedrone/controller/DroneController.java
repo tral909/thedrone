@@ -38,6 +38,12 @@ public class DroneController {
         return droneService.getDroneBatteryLevelById(id);
     }
 
+    @Operation(summary = "Get available drones for loading")
+    @GetMapping("available-for-loading")
+    public List<DroneOutDto> getAvailableForLoadingDrones() {
+        return droneService.getAvailableForLoadingDrones();
+    }
+
     @Operation(summary = "Get all fleet of drones")
     @GetMapping
     public List<DroneOutDto> getAllFleetOfDrones() {

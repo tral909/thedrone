@@ -1,5 +1,6 @@
 package com.musalasoft.indorm1992.thedrone;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.musalasoft.indorm1992.thedrone.dto.DroneCreateDto;
 import com.musalasoft.indorm1992.thedrone.dto.DroneOutDto;
@@ -15,11 +16,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -90,7 +95,7 @@ class DroneControllerTest extends AbstractControllerTest {
 		// data.sql inserts 10 drones, we check only first in detail
 		mockMvc.perform(get("/api/v1/drone"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.length()", is(10)))
+				.andExpect(jsonPath("$", hasSize(10)))
 				.andExpect(jsonPath("$.[0].id", is(1)))
 				.andExpect(jsonPath("$.[0].serialNumber", is("QWE1")))
 				.andExpect(jsonPath("$.[0].model", is("LIGHT_WEIGHT")))
@@ -99,4 +104,21 @@ class DroneControllerTest extends AbstractControllerTest {
 				.andExpect(jsonPath("$.[0].state", is("IDLE")));
 	}
 
+	@Test
+	void getAvailableForLoadingDrones() throws Exception {
+		// data.sql has 6 available drones (IDLE or LOADING status)
+		MvcResult result = mockMvc.perform(get("/api/v1/drone/available-for-loading"))
+				.andExpect(status().isOk())
+				.andReturn();
+
+		String response = result.getResponse().getContentAsString();
+		List<DroneOutDto> outDtos = mapper.readValue(response, new TypeReference<>(){});
+		Set<DroneState> outStates = outDtos.stream()
+				.map(DroneOutDto::getState)
+				.collect(Collectors.toSet());
+
+		assertEquals(2, outStates.size());
+		assertTrue(outStates.contains(DroneState.IDLE));
+		assertTrue(outStates.contains(DroneState.LOADING));
+	}
 }
