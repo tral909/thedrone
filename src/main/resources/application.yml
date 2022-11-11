@@ -15,3 +15,8 @@ spring:
   h2:
     console:
       enabled: true
+
+scheduler:
+  battery-level-logging:
+    enabled: true
+    interval-seconds: 15
