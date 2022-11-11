@@ -3,6 +3,7 @@ package com.musalasoft.indorm1992.thedrone.entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -22,6 +23,7 @@ import java.util.List;
 @Table(name = "MS_DRONE")
 public class Drone extends AbstractEntity {
 
+    // todo validate uniqueness while registering
     @Column(name = "SERIAL_NUMBER", unique = true, nullable = false)
     private String serialNumber;
 
@@ -41,6 +43,7 @@ public class Drone extends AbstractEntity {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "DRONE_ID")
+    @BatchSize(size = 10) // to avoid n+1 issue
     private List<Medication> medications = new ArrayList<>();
 
 }

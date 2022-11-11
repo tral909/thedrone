@@ -18,5 +18,5 @@ spring:
 
 scheduler:
   battery-level-logging:
-    enabled: true
+    enabled: false
     interval-seconds: 15

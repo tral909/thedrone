@@ -3,7 +3,9 @@ package com.musalasoft.indorm1992.thedrone;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.musalasoft.indorm1992.thedrone.dto.DroneCreateDto;
+import com.musalasoft.indorm1992.thedrone.dto.DroneLoadingDto;
 import com.musalasoft.indorm1992.thedrone.dto.DroneOutDto;
+import com.musalasoft.indorm1992.thedrone.dto.MedicationCreateDto;
 import com.musalasoft.indorm1992.thedrone.entity.Drone;
 import com.musalasoft.indorm1992.thedrone.entity.DroneModel;
 import com.musalasoft.indorm1992.thedrone.entity.DroneState;
@@ -21,13 +23,14 @@ import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,16 +46,21 @@ class DroneControllerTest extends AbstractControllerTest {
 	void registerDrone() throws Exception {
 		assertEquals(10, droneRepository.findAll().size());
 
-		DroneCreateDto dto = DroneCreateDto.builder()
-				.serialNumber("123ABC")
+		DroneCreateDto dto = new DroneCreateDto(
+				null,
+				"123ABC",
+				DroneModel.LIGHT_WEIGHT,
+				150,
+				75
+		);
+				/*.serialNumber("123ABC")
 				.model(DroneModel.LIGHT_WEIGHT)
 				.weightLimitGrams(150)
 				.batteryCapacity(75)
-				.build();
+				.build();*/
 		MvcResult result = mockMvc.perform(post("/api/v1/drone")
 						.content(mapper.writeValueAsString(dto))
 						.contentType(MediaType.APPLICATION_JSON))
-				.andDo(print())
 				.andExpect(status().isCreated())
 				.andReturn();
 
@@ -106,19 +114,56 @@ class DroneControllerTest extends AbstractControllerTest {
 
 	@Test
 	void getAvailableForLoadingDrones() throws Exception {
-		// data.sql has 6 available drones (IDLE or LOADING status)
+		// data.sql has 5 available drones (IDLE or LOADING status)
 		MvcResult result = mockMvc.perform(get("/api/v1/drone/available-for-loading"))
 				.andExpect(status().isOk())
 				.andReturn();
 
 		String response = result.getResponse().getContentAsString();
 		List<DroneOutDto> outDtos = mapper.readValue(response, new TypeReference<>(){});
+
+		// checking battery minimum for loading
+		assertTrue(outDtos.stream().allMatch(dr -> dr.getBatteryCapacity() >= 25));
 		Set<DroneState> outStates = outDtos.stream()
 				.map(DroneOutDto::getState)
 				.collect(Collectors.toSet());
 
+		// checking statuses
 		assertEquals(2, outStates.size());
 		assertTrue(outStates.contains(DroneState.IDLE));
 		assertTrue(outStates.contains(DroneState.LOADING));
+	}
+
+	@Test
+	void loadDroneWithMedications() throws Exception {
+		Long droneId = 1L;
+		Drone drone = droneRepository.findById(droneId)
+				.orElseThrow(() -> new AssertionFailedError("drone with id=" + droneId + " is not found"));
+
+		assertEquals(0, drone.getMedications().size());
+
+		DroneLoadingDto dto = new DroneLoadingDto();
+		MedicationCreateDto medDto = new MedicationCreateDto(
+				"PAINKILLER",
+				"pills.jpg".getBytes(),
+				50,
+				"137_CODE"
+		);
+		dto.getMedications().add(medDto);
+
+		mockMvc.perform(put("/api/v1/drone/{id}/medication", droneId)
+						.content(mapper.writeValueAsString(dto))
+						.contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isCreated());
+
+		drone = droneRepository.findById(droneId)
+				.orElseThrow(() -> new AssertionFailedError("drone with id=" + droneId + " is not found"));
+
+		assertEquals(1, drone.getMedications().size());
+		Medication med = drone.getMedications().get(0);
+		assertEquals(medDto.getName(), med.getName());
+		assertArrayEquals(medDto.getImage(), med.getImage());
+		assertEquals(medDto.getWeightGrams(), med.getWeightGrams());
+		assertEquals(medDto.getCode(), med.getCode());
 	}
 }

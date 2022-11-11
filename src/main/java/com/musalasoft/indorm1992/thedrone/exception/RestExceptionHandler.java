@@ -27,8 +27,8 @@ public class RestExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(DroneNotFoundException.class)
-    public RestError handleDroneNotFoundException(DroneNotFoundException ex) {
+    @ExceptionHandler({ DroneNotFoundException.class, DroneOverloadedException.class, DroneLoadingException.class })
+    public RestError handleInnerValidationExceptions(RuntimeException ex) {
         return new RestError(HttpStatus.BAD_REQUEST.getReasonPhrase(), List.of(ex.getMessage()));
     }
 
