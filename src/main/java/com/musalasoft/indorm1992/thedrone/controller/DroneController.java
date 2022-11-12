@@ -71,6 +71,5 @@ public class DroneController {
     }
 
     // todo
-    //  1) dockerize app
-    //  2) update README.md with info about build/launch/testing application
+    //   update README.md with info about build/launch/testing application
 }
