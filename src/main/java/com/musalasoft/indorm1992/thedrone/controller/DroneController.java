@@ -70,6 +70,4 @@ public class DroneController {
         return droneService.getLoadedMedicationByDroneId(id);
     }
 
-    // todo
-    //   update README.md with info about build/launch/testing application
 }

@@ -1,5 +1,35 @@
 ## Drones
 
+###How to build app:
+
+You need java11 is installed, then run commands:
+
+`$ cd <project_folder>`
+
+`$ ./gradlew build`
+
+Or using docker:
+
+`$ cd <project_folder>`
+
+`$ docker build -t the-drone:1 .`
+
+###How to run app:
+
+`$ ./gradlew bootRun`
+
+Or in docker container:
+
+`$ docker run -d -p 9090:9090 --name drone_app the-drone:1`
+
+###How to test app:
+"The drone" has integration api tests, so they run when you are building the application.
+If you want to make http requests, "The drone" also has OAS3, so you can open ui locally by the address:
+[Swagger UI](http://localhost:9090/swagger-ui/index.html)
+and try it yourself!
+
+###Task info:
+
 [[_TOC_]]
 
 ---
