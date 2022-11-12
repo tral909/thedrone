@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.musalasoft.indorm1992.thedrone.dto.DroneCreateDto;
 import com.musalasoft.indorm1992.thedrone.dto.DroneLoadingDto;
 import com.musalasoft.indorm1992.thedrone.dto.DroneOutDto;
-import com.musalasoft.indorm1992.thedrone.dto.MedicationCreateDto;
+import com.musalasoft.indorm1992.thedrone.dto.MedicationDto;
 import com.musalasoft.indorm1992.thedrone.entity.Drone;
 import com.musalasoft.indorm1992.thedrone.entity.DroneModel;
 import com.musalasoft.indorm1992.thedrone.entity.DroneState;
@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -143,7 +144,7 @@ class DroneControllerTest extends AbstractControllerTest {
 		assertEquals(0, drone.getMedications().size());
 
 		DroneLoadingDto dto = new DroneLoadingDto();
-		MedicationCreateDto medDto = new MedicationCreateDto(
+		MedicationDto medDto = new MedicationDto(
 				"PAINKILLER",
 				"pills.jpg".getBytes(),
 				50,
@@ -165,5 +166,19 @@ class DroneControllerTest extends AbstractControllerTest {
 		assertArrayEquals(medDto.getImage(), med.getImage());
 		assertEquals(medDto.getWeightGrams(), med.getWeightGrams());
 		assertEquals(medDto.getCode(), med.getCode());
+	}
+
+	@Test
+	void getLoadedMedicationByDroneId() throws Exception {
+		// data.sql inserts 2 medications, we check only first in detail
+		String originalImage = "test_pic1.png";
+		String expectedImage = Base64.getEncoder().encodeToString(originalImage.getBytes());
+		mockMvc.perform(get("/api/v1/drone/10/medication"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", hasSize(2)))
+				.andExpect(jsonPath("$.[0].name", is("MED1")))
+				.andExpect(jsonPath("$.[0].image", is(expectedImage)))
+				.andExpect(jsonPath("$.[0].weightGrams", is(100)))
+				.andExpect(jsonPath("$.[0].code", is("CODE1")));
 	}
 }

@@ -4,6 +4,7 @@ import com.musalasoft.indorm1992.thedrone.dto.BatteryLevelDto;
 import com.musalasoft.indorm1992.thedrone.dto.DroneCreateDto;
 import com.musalasoft.indorm1992.thedrone.dto.DroneLoadingDto;
 import com.musalasoft.indorm1992.thedrone.dto.DroneOutDto;
+import com.musalasoft.indorm1992.thedrone.dto.MedicationDto;
 import com.musalasoft.indorm1992.thedrone.service.DroneService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -63,8 +64,13 @@ public class DroneController {
         return droneService.getAllFleetOfDrones();
     }
 
+    @Operation(summary = "Get loaded medication items for a given drone")
+    @GetMapping("{id}/medication")
+    public List<MedicationDto> getLoadedMedicationByDroneId(@PathVariable Long id) {
+        return droneService.getLoadedMedicationByDroneId(id);
+    }
+
     // todo
-    //  1) api for checking loaded medication items for a given drone
-    //  2) dockerize app
-    //  3) update README.md with info about build/launch/testing application
+    //  1) dockerize app
+    //  2) update README.md with info about build/launch/testing application
 }

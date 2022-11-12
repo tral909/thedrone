@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 @Value
-public class MedicationCreateDto {
+public class MedicationDto {
 
     @NotBlank
     @Pattern(regexp = "^[a-zA-Z0-9_-]+$")

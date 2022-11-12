@@ -4,7 +4,7 @@ import com.musalasoft.indorm1992.thedrone.dto.BatteryLevelDto;
 import com.musalasoft.indorm1992.thedrone.dto.DroneCreateDto;
 import com.musalasoft.indorm1992.thedrone.dto.DroneLoadingDto;
 import com.musalasoft.indorm1992.thedrone.dto.DroneOutDto;
-import com.musalasoft.indorm1992.thedrone.dto.MedicationCreateDto;
+import com.musalasoft.indorm1992.thedrone.dto.MedicationDto;
 import com.musalasoft.indorm1992.thedrone.entity.Drone;
 import com.musalasoft.indorm1992.thedrone.entity.DroneState;
 import com.musalasoft.indorm1992.thedrone.entity.Medication;
@@ -76,7 +76,7 @@ public class DroneService {
         }
 
         Integer totalWeightForLoad = dto.getMedications().stream()
-                .map(MedicationCreateDto::getWeightGrams)
+                .map(MedicationDto::getWeightGrams)
                 .reduce(0, Integer::sum);
 
         Integer alreadyLoadedWeight = drone.getMedications().stream()
@@ -84,7 +84,7 @@ public class DroneService {
                 .reduce(0, Integer::sum);
 
         if (totalWeightForLoad + alreadyLoadedWeight <= drone.getWeightLimitGrams()) {
-            drone.getMedications().addAll(medicationMapper.mapMedsToSave(dto.getMedications()));
+            drone.getMedications().addAll(medicationMapper.mapDtos(dto.getMedications()));
             drone.setState(DroneState.LOADING);
         } else {
             throw new DroneOverloadedException("Too much medications! Loading is rejected...");
@@ -93,5 +93,13 @@ public class DroneService {
         if (totalWeightForLoad + alreadyLoadedWeight == drone.getWeightLimitGrams()) {
             drone.setState(DroneState.LOADED);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<MedicationDto> getLoadedMedicationByDroneId(Long id) {
+        Drone drone = droneRepository.findById(id).orElseThrow(
+                () -> new DroneNotFoundException("Drone with id=" + id + " is not found"));
+
+        return medicationMapper.mapMeds(drone.getMedications());
     }
 }

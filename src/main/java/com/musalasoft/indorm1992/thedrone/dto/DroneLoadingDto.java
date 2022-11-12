@@ -11,5 +11,5 @@ import java.util.List;
 public class DroneLoadingDto {
     @NotEmpty
     @Valid
-    List<MedicationCreateDto> medications = new ArrayList<>();
+    List<MedicationDto> medications = new ArrayList<>();
 }

@@ -1,7 +1,6 @@
 package com.musalasoft.indorm1992.thedrone.mapper;
 
-import com.musalasoft.indorm1992.thedrone.dto.MedicationCreateDto;
-import com.musalasoft.indorm1992.thedrone.dto.MedicationOutDto;
+import com.musalasoft.indorm1992.thedrone.dto.MedicationDto;
 import com.musalasoft.indorm1992.thedrone.entity.Medication;
 import org.mapstruct.Mapper;
 
@@ -10,8 +9,9 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface MedicationMapper {
 
-    Medication map(MedicationCreateDto dto);
-    MedicationOutDto map(Medication medication);
+    Medication map(MedicationDto dto);
+    MedicationDto map(Medication medication);
 
-    List<Medication> mapMedsToSave(List<MedicationCreateDto> medications);
+    List<Medication> mapDtos(List<MedicationDto> dtos);
+    List<MedicationDto> mapMeds(List<Medication> meds);
 }
