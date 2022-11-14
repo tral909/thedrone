@@ -16,12 +16,14 @@ import com.musalasoft.indorm1992.thedrone.mapper.DroneMapper;
 import com.musalasoft.indorm1992.thedrone.mapper.MedicationMapper;
 import com.musalasoft.indorm1992.thedrone.repository.DroneRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.EnumSet;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DroneService {
@@ -36,6 +38,7 @@ public class DroneService {
 
     @Transactional
     public DroneOutDto registerDrone(DroneCreateDto dto) {
+        log.info("registerDrone starts with request: {}", dto);
         droneRepository.findBySerialNumber(dto.getSerialNumber())
                 .ifPresent((d) -> {
                     throw new DroneUniqueSerialNumberException(
@@ -43,30 +46,42 @@ public class DroneService {
                 });
         Drone drone = droneMapper.map(dto);
         Drone savedDrone = droneRepository.save(drone);
-        return droneMapper.map(savedDrone);
+        DroneOutDto outDto = droneMapper.map(savedDrone);
+        log.info("A drone finishes registering successfully. Response: {}", outDto);
+        return outDto;
     }
 
     @Transactional(readOnly = true)
     public BatteryLevelDto getDroneBatteryLevelById(Long id) {
+        log.info("getDroneBatteryLevelById starts for id={}", id);
         Drone drone = droneRepository.findById(id).orElseThrow(
                 () -> new DroneNotFoundException("Drone with id=" + id + " is not found"));
+        log.info("getDroneBatteryLevelById finishes with result {} for drone id={}",
+                drone.getBatteryCapacity(), id);
         return new BatteryLevelDto(drone.getBatteryCapacity());
     }
 
     @Transactional(readOnly = true)
     public List<DroneOutDto> getAllFleetOfDrones() {
-        return droneMapper.mapDrones(droneRepository.findAll());
+        log.info("getAllFleetOfDrones starts");
+        List<DroneOutDto> response = droneMapper.mapDrones(droneRepository.findAll());
+        log.info("getAllFleetOfDrones finishes");
+        return response;
     }
 
     @Transactional(readOnly = true)
     public List<DroneOutDto> getAvailableForLoadingDrones() {
-        return droneMapper.mapDrones(droneRepository.findAvailableForLoading(
+        log.info("getAvailableForLoadingDrones starts");
+        List<DroneOutDto> response = droneMapper.mapDrones(droneRepository.findAvailableForLoading(
                 AVAILABLE_FOR_LOADING_DRONE_STATES,
                 DRONE_BATTERY_MIN_FOR_LOADING));
+        log.info("getAvailableForLoadingDrones finishes");
+        return response;
     }
 
     @Transactional
     public void loadDroneWithMedications(Long id, DroneLoadingDto dto) {
+        log.info("loadDroneWithMedications starts for id={} with request: {}", id, dto);
         Drone drone = droneRepository.findById(id).orElseThrow(
                 () -> new DroneNotFoundException("Drone with id=" + id + " is not found"));
 
@@ -93,13 +108,17 @@ public class DroneService {
         if (totalWeightForLoad + alreadyLoadedWeight == drone.getWeightLimitGrams()) {
             drone.setState(DroneState.LOADED);
         }
+        log.info("loadDroneWithMedications finishes for id={} with request: {}", id, dto);
     }
 
     @Transactional(readOnly = true)
     public List<MedicationDto> getLoadedMedicationByDroneId(Long id) {
+        log.info("getLoadedMedicationByDroneId starts with id={}", id);
         Drone drone = droneRepository.findById(id).orElseThrow(
                 () -> new DroneNotFoundException("Drone with id=" + id + " is not found"));
 
-        return medicationMapper.mapMeds(drone.getMedications());
+        List<MedicationDto> response = medicationMapper.mapMeds(drone.getMedications());
+        log.info("getLoadedMedicationByDroneId finishes for id={}", id);
+        return response;
     }
 }
